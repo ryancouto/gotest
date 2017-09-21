@@ -22,6 +22,12 @@ var green = color.New(color.FgGreen)
 var red = color.New(color.FgHiRed)
 
 func main() {
+	if len(os.Args[1:]) == 1 {
+		if _, err := os.Stat(os.Args[1]); !os.IsNotExist(err) {
+			gotestFile(os.Args[1])
+			return
+		}
+	}
 	gotest(os.Args[1:])
 }
 
@@ -38,6 +44,21 @@ func gotest(args []string) {
 	go consume(r)
 
 	cmd.Run()
+}
+
+func gotestFile(filepath string) {
+	f, err := os.Open(os.Args[1])
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		parse(scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func consume(r io.Reader) {
